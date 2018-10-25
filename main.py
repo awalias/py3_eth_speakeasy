@@ -1,8 +1,10 @@
 
+import uuid
+import json
 from flask import Flask, render_template, send_from_directory, request
 import web3
 from eth_account.messages import defunct_hash_message
-from google.cloud import firestore
+from google.cloud import datastore
 
 # If `entrypoint` is not defined in app.yaml, App Engine will look for an app
 # called `app` in `main.py`.
@@ -12,15 +14,14 @@ CURRENT_APP_VERSION = "index"
 
 # setup some clients
 w3 = web3.Web3(web3.Web3.HTTPProvider("https://mainnet.infura.io/v3/60ae97a8fe984792b849ef1d047d295a"))
-db = firestore.Client()
-users_ref = db.collection(u'users')
+db = datastore.Client()
 
 @app.route('/')
 def index():
     """Return a homepage."""
 
     return render_template(
-    	'index.html',
+        'index.html',
         CURRENT_APP_VERSION = CURRENT_APP_VERSION,
     )
 
@@ -31,16 +32,27 @@ def auth():
 
     if step == 'init':
         eth_address = request.form.get('eth_address').lower()
-        user = users_ref.document(eth_address)
+
+        user_key = db.key('Users', eth_address)
+        user = db.get(user_key)
 
         if user:
             # generate nonce and return it to user
-            return json.dumps({'nonce' : user.reset_nonce() })
+            new_nonce = generate_new_nonce()
+            user.update({
+                'nonce': new_nonce,
+            })
+            db.put(user)
+            return json.dumps({'nonce' : new_nonce })
 
         else:
             # create new user - generate nonce and return it to user
             new_nonce = generate_new_nonce()
-            user = users_ref.document(eth_address).set({ 'nonce' : new_nonce })
+            user = datastore.Entity(key=user_key)
+            user.update({
+                'nonce': new_nonce,
+            })
+            db.put(user)
             return json.dumps({'nonce' : new_nonce })
 
 
@@ -48,13 +60,15 @@ def auth():
         eth_address = request.form.get('eth_address').lower()
         signed_nonce = request.form.get('signed_nonce')
 
-        nonce = "TODO"# TODO get nonce by eth_address
-        if not nonce:
+        user_key = db.key('Users', eth_address)
+        user = db.get(user_key)
+
+        if not user:
             return json.dumps({'message':"You are not authorised 1"})
 
         else:
-            verified = verify_sig(nonce, signed_nonce, eth_address)
-            has_sufficient_balance = w3.eth.getBalance(eth_address)
+            verified = verify_sig(user.get('nonce'), signed_nonce, eth_address)
+            has_sufficient_balance = True #w3.eth.getBalance(eth_address)
 
             if verified and has_sufficient_balance:
                 # TODO send chat page
@@ -64,11 +78,15 @@ def auth():
 
 
 def verify_sig(nonce, signed_nonce, eth_address):
-	# verify sig
-	msg_hash = defunct_hash_message("ETH Speakeasy Login code: " + nonce)
-	recovered_address = w3.eth.account.recoverHash(msg_hash, signature=signed_nonce)
+    # verify sig
+    msg_hash = defunct_hash_message(text="ETH Speakeasy Login code: " + nonce)
+    recovered_address = w3.eth.account.recoverHash(msg_hash, signature=signed_nonce)
 
-	return recovered_address == eth_address
+    return recovered_address.lower() == eth_address.lower()
+
+
+def generate_new_nonce():
+    return uuid.uuid4().hex
 
 
 @app.route('/static/<path:path>')
