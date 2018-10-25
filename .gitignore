@@ -1,0 +1,9 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+static/css/dist/*
+static/js/dist/*
+node_modules/*
+venv/*
+.DS_Store
