@@ -2,6 +2,7 @@
 import uuid
 import json
 from flask import Flask, render_template, send_from_directory, request
+from flask_socketio import SocketIO
 import web3
 from eth_account.messages import defunct_hash_message
 from google.cloud import datastore
@@ -9,6 +10,8 @@ from google.cloud import datastore
 # If `entrypoint` is not defined in app.yaml, App Engine will look for an app
 # called `app` in `main.py`.
 app = Flask(__name__, template_folder='./templates', static_url_path='')
+app.config['SECRET_KEY'] = 'bnkd2nfjknfl1232#'
+socketio = SocketIO(app)
 
 CURRENT_APP_VERSION = "index"
 
@@ -64,7 +67,7 @@ def auth():
         user = db.get(user_key)
 
         if not user:
-            return json.dumps({'message':"You are not authorised 1"})
+            return json.dumps({'success':False, 'message':"You are not authorised 1"})
 
         else:
             verified = verify_sig(user.get('nonce'), signed_nonce, eth_address)
@@ -72,9 +75,19 @@ def auth():
 
             if verified and has_sufficient_balance:
                 # TODO send chat page
-                return json.dumps({'message':"You are authorised"})
+                return json.dumps({'success':False, 'message':render_template('session.html')})
             else:
-                return json.dumps({'message':"You are not authorised 2"})
+                return json.dumps({'success':False, 'message':"You are not authorised 2"})
+
+
+def messageReceived(methods=['GET', 'POST']):
+    print('message was received!!!')
+
+
+@socketio.on('my event')
+def handle_my_custom_event(json, methods=['GET', 'POST']):
+    print('received my event: ' + str(json))
+    socketio.emit('my response', json, callback=messageReceived)
 
 
 def verify_sig(nonce, signed_nonce, eth_address):
@@ -113,4 +126,5 @@ if __name__ == '__main__':
     # This is used when running locally only. When deploying to Google App
     # Engine, a webserver process such as Gunicorn will serve the app. This
     # can be configured by adding an `entrypoint` to app.yaml.
-    app.run(host='127.0.0.1', port=8080, debug=True)
+    #app.run(host='127.0.0.1', port=8080, debug=True)
+    socketio.run(app, debug=True)

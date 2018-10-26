@@ -73,10 +73,16 @@ var submit_signature = async(data) => {
         dataType: "json",
       })
       .done(function(data) {
-        console.log(data);
+        if (data['success']) {
+          var newDoc = document.open("text/html");
+          newDoc.write(data['message']);
+          newDoc.close();
+        } else {
+          $('.popper').show();
+        }
       })
       .fail(function(data) {
-        console.log( data );
+        $('.popper').show();
       })
     }
   )
