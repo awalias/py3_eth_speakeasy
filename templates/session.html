@@ -6,20 +6,20 @@
   </head>
   <body>
 
-    <h3 style='color: #ccc;font-size: 30px;'>No message yet..</h3>
-    <div class="message_holder"></div>
+<!--     <h3 style='color: #ccc;font-size: 30px;'>No message yet..</h3> -->
+<!--     <div class="message_holder"></div> -->
 
-    <form action="" method="POST">
+<!--     <form action="" method="POST">
       <input type="text" class="username" placeholder="User Name"/>
       <input type="text" class="message" placeholder="Messages"/>
       <input type="submit"/>
-    </form>
+    </form> -->
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<!--     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
     <script type="text/javascript">
-      var socket = io.connect('http://' + document.domain + ':' + location.port);
+      var socket = io.connect('http://' + document.domain + ':' + location.port, {secure: true});
       socket.on( 'connect', function() {
         socket.emit( 'my event', {
           data: 'User Connected'
@@ -42,7 +42,9 @@
           $( 'div.message_holder' ).append( '<div><b style="color: #000">'+msg.user_name+'</b> '+msg.message+'</div>' )
         }
       })
-    </script>
+    </script> -->
+
+  <iframe src='https://minnit.chat/ethspeakeasy?embed&web' width='1000' height='500' style='border:none;' allowTransparency='true'></iframe><br>
 
   </body>
 </html>

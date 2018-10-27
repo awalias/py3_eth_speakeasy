@@ -36,9 +36,9 @@ var attempt_auth = async() => {
     web3.eth.getAccounts(function(e,accounts){
       var balance = 0;
       web3.eth.getBalance(accounts[0], "latest", function(a,b) {
-        eth_address = accounts[0];
+        eth_address = web3.toChecksumAddress(accounts[0]);
         balance = b.toNumber();
-        get_nonce(balance, accounts[0]);
+        get_nonce(balance, web3.toChecksumAddress(accounts[0]));
       })
     });
 }

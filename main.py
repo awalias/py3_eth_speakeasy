@@ -34,7 +34,7 @@ def auth():
     step = request.form.get('step')
 
     if step == 'init':
-        eth_address = request.form.get('eth_address').lower()
+        eth_address = request.form.get('eth_address')
 
         user_key = db.key('Users', eth_address)
         user = db.get(user_key)
@@ -60,7 +60,7 @@ def auth():
 
 
     elif step == 'auth':
-        eth_address = request.form.get('eth_address').lower()
+        eth_address = request.form.get('eth_address')
         signed_nonce = request.form.get('signed_nonce')
 
         user_key = db.key('Users', eth_address)
@@ -71,11 +71,11 @@ def auth():
 
         else:
             verified = verify_sig(user.get('nonce'), signed_nonce, eth_address)
-            has_sufficient_balance = True #w3.eth.getBalance(eth_address)
+            has_sufficient_balance = w3.fromWei(w3.eth.getBalance(eth_address), 'ether') >= 500
 
             if verified and has_sufficient_balance:
                 # TODO send chat page
-                return json.dumps({'success':False, 'message':render_template('session.html')})
+                return json.dumps({'success':True, 'message':render_template('session.html')})
             else:
                 return json.dumps({'success':False, 'message':"You are not authorised 2"})
 
@@ -95,7 +95,7 @@ def verify_sig(nonce, signed_nonce, eth_address):
     msg_hash = defunct_hash_message(text="ETH Speakeasy Login code: " + nonce)
     recovered_address = w3.eth.account.recoverHash(msg_hash, signature=signed_nonce)
 
-    return recovered_address.lower() == eth_address.lower()
+    return recovered_address == eth_address
 
 
 def generate_new_nonce():
