@@ -1,7 +1,7 @@
 var eth_address;
 
 $( document ).ready(function() {
-    $('.goldbutt').click(function(){
+    $('#login').click(function(){
         eth_verify();
     });
 });
