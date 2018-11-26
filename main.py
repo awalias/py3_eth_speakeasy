@@ -71,7 +71,7 @@ def auth():
 
         else:
             verified = verify_sig(user.get('nonce'), signed_nonce, eth_address)
-            has_sufficient_balance = w3.fromWei(w3.eth.getBalance(eth_address), 'ether') >= 500
+            has_sufficient_balance = w3.fromWei(w3.eth.getBalance(eth_address), 'ether') >= 32
 
             if verified and has_sufficient_balance:
                 # TODO send chat page
